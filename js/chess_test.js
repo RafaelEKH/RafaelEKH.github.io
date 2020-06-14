@@ -190,7 +190,18 @@ function highLighter(myParam8) {
     }
 }
 
-window.addEventListener("click touchstart", function(e) {
+window.addEventListener("click", function(e) {
+    if (pieceIsSelected) {
+        selectTargetTile(e);
+        movePiece(e);
+    }
+    else if (!pieceIsSelected) {
+        tileOrPiece(e);
+        selectPiece(e);
+    }
+});
+
+window.addEventListener("touchstart", function(e) {
     if (pieceIsSelected) {
         selectTargetTile(e);
         movePiece(e);
