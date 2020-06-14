@@ -190,7 +190,7 @@ function highLighter(myParam8) {
     }
 }
 
-window.onclick = e => {
+window.addEventListener("click touchstart", function(e) {
     if (pieceIsSelected) {
         selectTargetTile(e);
         movePiece(e);
@@ -199,4 +199,4 @@ window.onclick = e => {
         tileOrPiece(e);
         selectPiece(e);
     }
-}
+});
