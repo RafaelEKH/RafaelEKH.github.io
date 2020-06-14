@@ -10,18 +10,20 @@ let mezok = [
 ];
 
 let whiteKing = '<i id="whiteking" class="piece whitepiece fas fa-chess-king"></i>';
-let whiteQueen = '<i id="whitequeen" class="piece whitepiece fas fa-chess-queen"></i>';
-let whiteBishop = '<i id="whitebishop" class="piece whitepiece fas fa-chess-bishop"></i>';
-let whiteKnight = '<i id="whiteknight" class="piece whitepiece fas fa-chess-knight"></i>';
-let whiteRook = '<i id="whiterook" class="piece whitepiece fas fa-chess-rook"></i>';
-let whitePawn = '<i id="whitepawn" class="piece whitepiece fas fa-chess-pawn"></i>';
+let whiteQueen = '<i class="piece whitepiece fas fa-chess-queen"></i>';
+let whiteBishop = '<i class="piece whitepiece fas fa-chess-bishop"></i>';
+let whiteKnight = '<i class="piece whitepiece fas fa-chess-knight"></i>';
+let whiteRook = '<i class="piece whitepiece fas fa-chess-rook"></i>';
+let whitePawn = '<i class="piece whitepiece fas fa-chess-pawn"></i>';
 
 let blackKing = '<i id="blackking" class="piece blackpiece fas fa-chess-king"></i>';
-let blackQueen = '<i id="blackqueen" class="piece blackpiece fas fa-chess-queen"></i>';
-let blackBishop = '<i id="blackbishop" class="piece blackpiece fas fa-chess-bishop"></i>';
-let blackKnight = '<i id="blackknight" class="piece blackpiece fas fa-chess-knight"></i>';
-let blackRook = '<i id="blackrook" class="piece blackpiece fas fa-chess-rook"></i>';
-let blackPawn = '<i id="blackpawn" class="piece blackpiece fas fa-chess-pawn"></i>';
+let blackQueen = '<i class="piece blackpiece fas fa-chess-queen"></i>';
+let blackBishop = '<i class="piece blackpiece fas fa-chess-bishop"></i>';
+let blackKnight = '<i class="piece blackpiece fas fa-chess-knight"></i>';
+let blackRook = '<i class="piece blackpiece fas fa-chess-rook"></i>';
+let blackPawn = '<i class="piece blackpiece fas fa-chess-pawn"></i>';
+
+let highLightDiv = '<div id=highlight></div>';
 
 let piecesAreSet = false;
 
@@ -65,62 +67,85 @@ function setThePieces() {
 
 }
 
-function doNothing() {
-    console.log("kattints máshova fam");
-}
-
 let selectedPiece;
 let stepArray = [];
 let isItTile = false;
 let isItPiece = false;
 let pieceIsSelected = false;
+let targetIsSelected = false;
+let selectedPieceColorVal = "white";
+let targetedPieceColorVal = "black";
+let tileIsOccupied;
+let firstSelect;
+let otherSelect;
 
 function tileOrPiece(myParam) {
     if (mezok.includes(myParam.target.id)) {
         isItTile = true;
         isItPiece = false;
-        console.log("you clicked on a tile");
     } else if (myParam.srcElement.className.search("piece") != -1) {
         isItTile = false;
         isItPiece = true;
-        console.log("You clicked on a piece");
-    } else {
-        doNothing();
     }
 }
 
-let isHighlighted = false;
+function selectedPieceColor(myParam5) {
+    if (myParam5.srcElement.className.search("whitepiece") != -1) {
+        selectedPieceColorVal = "white";
+    } else if (myParam5.srcElement.className.search("blackpiece") != -1) {
+        selectedPieceColorVal = "black";
+    }
+}
 
-
-function highlightSelectedTile() {
-   
+function targetedPieceColor(myParam7) {
+    if (myParam7.srcElement.className.search("whitepiece") != -1) {
+        targetedPieceColorVal = "white";
+    } else if (myParam7.srcElement.className.search("blackpiece") != -1) {
+        targetedPieceColorVal = "black";
+    }
 }
 
 function selectPiece(myParam2) {
+    /* selecting a piece*/
     if (pieceIsSelected == false && isItPiece) {
+        selectedPiece = myParam2.target;
         let from = myParam2.target.parentNode.id;
         stepArray[0] = from;
-        console.log(stepArray);
         pieceIsSelected = true;
-        selectedPiece = myParam2.target;
-        
-    } else if (pieceIsSelected == true && myParam2.target.parentNode.id != stepArray[0] && myParam2.srcElement.className.search("piece") != -1) {
-        let from = myParam2.target.parentNode.id;
-        stepArray[0] = from;
-        console.log(stepArray);
-        pieceIsSelected = true;
-        selectedPiece = myParam2.target;
-        
-    }
+        selectedPieceColor(myParam2);
+        firstSelect = true;
+        highLighter(myParam2);
 
+    /*selecting other piece instead of the selected*/
+    } else if (pieceIsSelected == true && myParam2.target.parentNode.id != stepArray[0] && myParam2.srcElement.className.search("piece") != -1) {
+        let from2 = myParam2.target.parentNode.id;
+        selectedPiece = myParam2.target;
+        stepArray[0] = from2;
+        pieceIsSelected = true;
+        selectedPieceColor(myParam2);
+        firstSelect = false;
+        otherSelect = true;
+        highLighter(myParam2);
+    }
 }
 
 function selectTargetTile(myParam3) {
-    if (isItTile == true && pieceIsSelected == true) {
-        let stepTarget = myParam3.target.id;
-        console.log(stepTarget);
-        stepArray[1] = stepTarget;
-        console.log(stepArray);
+    if (mezok.includes(myParam3.target.id)) {
+        tileIsOccupied = document.getElementById(myParam3.target.id).hasChildNodes();
+        if (!tileIsOccupied) {
+            let stepTarget = myParam3.target.id;
+            stepArray[1] = stepTarget;
+            targetIsSelected = true;
+        }
+    } else if ((myParam3.srcElement.className.search("piece") != -1) && (myParam3.target.parentNode.id != stepArray[0])) {
+        targetedPieceColor(myParam3);
+        if (selectedPieceColorVal != targetedPieceColorVal) {
+            stepTarget = myParam3.target.parentNode.id;
+            stepArray[1] = stepTarget;
+            targetIsSelected = true;
+        } else {
+            selectPiece(myParam3);
+        }
     }
 }
 
@@ -132,12 +157,46 @@ function movePiece(myParam4) {
         fromTile.innerHTML = "";
         stepArray.length = 0;
         pieceIsSelected = false;
+        isItTile = false;
+        isItPiece = false;
+    }
+}
+
+let choosenPiece;
+let firstChoosenPiece;
+let tileOfChoosen;
+let tileOfFirstChoosen;
+
+function highLighter(myParam8) {
+    if (stepArray.length == 1 && (myParam8.srcElement.className.search("piece") != -1)) {
+        if (firstSelect) {
+            choosenPiece = myParam8.target;
+            firstChoosenPiece = myParam8.target;
+            tileOfChoosen = document.getElementById(myParam8.target.parentNode.id);
+            tileOfFirstChoosen = document.getElementById(myParam8.target.parentNode.id);
+            tileOfChoosen.innerHTML = highLightDiv;
+            document.getElementById("highlight").innerHTML = choosenPiece.outerHTML;
+
+        } else if (otherSelect) {
+            tileOfFirstChoosen.innerHTML = firstChoosenPiece.outerHTML;
+            choosenPiece = myParam8.target;            
+            firstChoosenPiece = myParam8.target;            
+            tileOfChoosen = document.getElementById(myParam8.target.parentNode.id);
+            tileOfFirstChoosen = document.getElementById(myParam8.target.parentNode.id);
+            tileOfChoosen.innerHTML = highLightDiv;
+            document.getElementById("highlight").innerHTML = choosenPiece.outerHTML;
+
+        }
     }
 }
 
 window.onclick = e => {
-    tileOrPiece(e);
-    selectPiece(e);
-    selectTargetTile(e);
-    movePiece(e);
+    if (pieceIsSelected) {
+        selectTargetTile(e);
+        movePiece(e);
+    }
+    else if (!pieceIsSelected) {
+        tileOrPiece(e);
+        selectPiece(e);
+    }
 }
