@@ -1,12 +1,12 @@
 #btn-div {
-    display: block;
-    margin: auto;
+    display: inline-block;
+    margin-left: 20px;
     max-width: 800px;
     padding-top: 30px;
     padding-bottom: 10px;
 }
 
-#piecesetter {
+.chessbutton {
     background-color: rgba(10, 10, 92, 0.7);
     height: 48px;
     border-radius: 10px;
@@ -20,16 +20,20 @@
     letter-spacing: 1px;    
 }
 
-#piecesetter:hover {
+.chessbutton:hover {
     background-color: rgb(14, 21, 61);
     border-radius: 10px;
 }
 
-#highlight {
+.highlight {
     display: inline-block;
     background-color: rgba(219, 217, 102, 0.3);
     width: 100px;
     height: 100px;
+}
+
+form {
+    display: inline;
 }
 
 i {

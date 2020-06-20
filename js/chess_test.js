@@ -23,12 +23,14 @@ let blackKnight = '<i class="piece blackpiece fas fa-chess-knight"></i>';
 let blackRook = '<i class="piece blackpiece fas fa-chess-rook"></i>';
 let blackPawn = '<i class="piece blackpiece fas fa-chess-pawn"></i>';
 
-let highLightDiv = '<div id=highlight></div>';
+//let highLightDiv = '<div id=highlight></div>';
+let highLightDiv = document.createElement("div");
+highLightDiv.className = "highlight";
 
 let piecesAreSet = false;
 
 function setThePieces() {
-    if (piecesAreSet == false) {
+    if (!piecesAreSet) {
         document.getElementById("a1").innerHTML = whiteRook;
         document.getElementById("b1").innerHTML = whiteKnight;
         document.getElementById("c1").innerHTML = whiteBishop;
@@ -67,6 +69,15 @@ function setThePieces() {
 
 }
 
+function restart() {
+    if (piecesAreSet)
+    alert("restart function placeholder");
+}
+
+function testpiece() {
+    document.getElementById("e4").innerHTML = whiteKnight;
+}
+
 let selectedPiece;
 let stepArray = [];
 let isItTile = false;
@@ -83,24 +94,24 @@ function tileOrPiece(myParam) {
     if (mezok.includes(myParam.target.id)) {
         isItTile = true;
         isItPiece = false;
-    } else if (myParam.srcElement.className.search("piece") != -1) {
+    } else if (myParam.target.className.search("piece") != -1) {
         isItTile = false;
         isItPiece = true;
     }
 }
 
 function selectedPieceColor(myParam5) {
-    if (myParam5.srcElement.className.search("whitepiece") != -1) {
+    if (myParam5.target.className.search("whitepiece") != -1) {
         selectedPieceColorVal = "white";
-    } else if (myParam5.srcElement.className.search("blackpiece") != -1) {
+    } else if (myParam5.target.className.search("blackpiece") != -1) {
         selectedPieceColorVal = "black";
     }
 }
 
 function targetedPieceColor(myParam7) {
-    if (myParam7.srcElement.className.search("whitepiece") != -1) {
+    if (myParam7.target.className.search("whitepiece") != -1) {
         targetedPieceColorVal = "white";
-    } else if (myParam7.srcElement.className.search("blackpiece") != -1) {
+    } else if (myParam7.target.className.search("blackpiece") != -1) {
         targetedPieceColorVal = "black";
     }
 }
@@ -117,7 +128,7 @@ function selectPiece(myParam2) {
         highLighter(myParam2);
 
     /*selecting other piece instead of the selected*/
-    } else if (pieceIsSelected == true && myParam2.target.parentNode.id != stepArray[0] && myParam2.srcElement.className.search("piece") != -1) {
+    } else if (pieceIsSelected == true && myParam2.target.parentNode.id != "highlight" && myParam2.target.className.search("piece") != -1) {
         let from2 = myParam2.target.parentNode.id;
         selectedPiece = myParam2.target;
         stepArray[0] = from2;
@@ -153,8 +164,13 @@ function movePiece(myParam4) {
     if (stepArray.length == 2) {
         let fromTile = document.getElementById(stepArray[0]);
         let toTile = document.getElementById(stepArray[1]);
-        toTile.innerHTML = selectedPiece.outerHTML;
-        fromTile.innerHTML = "";
+        //toTile.innerHTML = selectedPiece.outerHTML;
+        if (toTile.firstElementChild) {
+            toTile.removeChild(toTile.firstChild);
+        }
+        toTile.appendChild(selectedPiece);
+        //fromTile.innerHTML = "";
+        fromTile.removeChild(fromTile.firstChild);
         stepArray.length = 0;
         pieceIsSelected = false;
         isItTile = false;
@@ -167,28 +183,146 @@ let firstChoosenPiece;
 let tileOfChoosen;
 let tileOfFirstChoosen;
 
+let legalsKnight = ["21", "12", "19", "8", "-3", "-12", "-21", "-19", "-8"];
+
 function highLighter(myParam8) {
-    if (stepArray.length == 1 && (myParam8.srcElement.className.search("piece") != -1)) {
+    if (stepArray.length == 1 && (myParam8.target.className.search("piece") != -1)) {
         if (firstSelect) {
             choosenPiece = myParam8.target;
             firstChoosenPiece = myParam8.target;
-            tileOfChoosen = document.getElementById(myParam8.target.parentNode.id);
-            tileOfFirstChoosen = document.getElementById(myParam8.target.parentNode.id);
-            tileOfChoosen.innerHTML = highLightDiv;
-            document.getElementById("highlight").innerHTML = choosenPiece.outerHTML;
 
-        } else if (otherSelect) {
-            tileOfFirstChoosen.innerHTML = firstChoosenPiece.outerHTML;
-            choosenPiece = myParam8.target;            
-            firstChoosenPiece = myParam8.target;            
             tileOfChoosen = document.getElementById(myParam8.target.parentNode.id);
             tileOfFirstChoosen = document.getElementById(myParam8.target.parentNode.id);
-            tileOfChoosen.innerHTML = highLightDiv;
-            document.getElementById("highlight").innerHTML = choosenPiece.outerHTML;
+
+            //tileOfChoosen.innerHTML = highLightDiv;
+            tileOfChoosen.appendChild(highLightDiv);
+            //document.getElementById("highlight").innerHTML = choosenPiece.outerHTML;
+            highLightDiv.appendChild(choosenPiece);
+            //highlightLegal();
+            
+            
+        } else if (otherSelect) {
+            //tileOfFirstChoosen.innerHTML = firstChoosenPiece.outerHTML;
+
+            tileOfFirstChoosen.removeChild(tileOfFirstChoosen.firstChild);
+            tileOfFirstChoosen.appendChild(firstChoosenPiece);
+
+            choosenPiece = myParam8.target;            
+            firstChoosenPiece = myParam8.target;
+
+            tileOfChoosen = document.getElementById(myParam8.target.parentNode.id);
+            tileOfFirstChoosen = document.getElementById(myParam8.target.parentNode.id);
+
+            //tileOfChoosen.innerHTML = highLightDiv;
+            tileOfChoosen.removeChild(tileOfChoosen.firstChild);
+            tileOfChoosen.appendChild(highLightDiv);
+
+            //document.getElementById("highlight").innerHTML = choosenPiece.outerHTML;
+            highLightDiv.appendChild(choosenPiece);
+
 
         }
     }
 }
+
+
+function highlightLegal() {
+    if (selectedPiece) {
+        let legal = legalMoves(pieceIdentifier(selectedPiece),pieceIdConverter(selectedPiece.parentNode.parentNode.id));
+        document.getElementById(legal).appendChild(highLightDiv);
+    }
+}
+
+//selectedPiece.className
+
+function pieceIdentifier(piece) {
+    if (piece.className.search("pawn") != -1) {
+        return 0;
+    }
+    if (piece.className.search("rook") != -1) {
+        return 1;
+    }
+    if (piece.className.search("knight") != -1) {
+        return 2;
+    }
+    if (piece.className.search("bishop") != -1) {
+        return 3;
+    }
+    if (piece.className.search("queen") != -1) {
+        return 4;
+    }
+    if (piece.className.search("king") != -1) {
+        return 5;
+    }
+    
+}
+
+function pieceIdConverter(id) {
+    if (id[0] == "a") {
+        return "1"+id[1];
+    }
+    if (id[0] == "b") {
+        return "2"+id[1];
+    }
+    if (id[0] == "c") {
+        return "3"+id[1];
+    }
+    if (id[0] == "d") {
+        return "4"+id[1];
+    }
+    if (id[0] == "e") {
+        return "5"+id[1];
+    }
+    if (id[0] == "f") {
+        return "6"+id[1];
+    }
+    if (id[0] == "g") {
+        return "7"+id[1];
+    }
+    if (id[0] == "h") {
+        return "8"+id[1];
+    }
+}
+
+function numIdConverter(id) {
+    if (id[0] == "1") {
+        return "a"+id[1];
+    }
+    if (id[0] == "2") {
+        return "b"+id[1];
+    }
+    if (id[0] == "3") {
+        return "c"+id[1];
+    }
+    if (id[0] == "4") {
+        return "d"+id[1];
+    }
+    if (id[0] == "5") {
+        return "e"+id[1];
+    }
+    if (id[0] == "6") {
+        return "f"+id[1];
+    }
+    if (id[0] == "7") {
+        return "g"+id[1];
+    }
+    if (id[0] == "8") {
+        return "h"+id[1];
+    }
+}
+
+
+//returns the id of legal tiles in a string like "e5"
+function legalMoves(pieceTypeNumber, numId) {
+    //legal moves for pawns
+    if (pieceTypeNumber == 0) {
+        if (parseInt(numId[1])+1 <= 8) {
+            return numIdConverter(numId[0]+String(parseInt(numId[1])+1));          
+        }
+    }
+}
+
+
 
 window.addEventListener("click", function(e) {
     if (pieceIsSelected) {

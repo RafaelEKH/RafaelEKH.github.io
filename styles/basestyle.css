@@ -36,7 +36,7 @@ border-radius: 10px;
 #homebody {
     display: block;
     width: 1280px;
-    min-height: 500px;
+    min-height: 100%;
     margin: auto;
     background-color: rgb(176, 172, 202);
     border-radius: 10px;
@@ -108,4 +108,8 @@ p {
 a {
     text-decoration: none;
     color: rgb (40, 40, 40);
+}
+
+.fa-check-square {
+    color: green;
 }
