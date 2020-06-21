@@ -41,25 +41,21 @@ function testpiece() {
 let pieceIsSelected = false;
 let selectedPiece = []; //selectedPiece format ["color", piecetype number , "placed tile id"] e.g. ["white", 0 , "e4"]
 
+const pieceNames = {
+    pawn: 0,
+    rook: 1,
+    knight: 2,
+    bishop: 3,
+    queen: 4,
+    king: 5 
+}
+
 const pieceNameFinder = (theClass) => {
-    if (theClass.search("pawn") != -1) {
-        selectedPiece[1] = 0;
-        return;
-    } else if (theClass.search("rook") != -1) {
-        selectedPiece[1] = 1;
-        return;
-    } else if (theClass.search("knight") != -1) {
-        selectedPiece[1] = 2;
-        return;
-    } else if (theClass.search("bishop") != -1) {
-        selectedPiece[1] = 3;
-        return;
-    } else if (theClass.search("queen") != -1) {
-        selectedPiece[1] = 4;
-        return;
-    } else if (theClass.search("king") != -1) {
-        selectedPiece[1] = 5;
-        return;
+    let pieceNameKey;
+    for (pieceNameKey of Object.keys(pieceNames)) {
+        if ( theClass.search(pieceNameKey) != -1 ) {
+            selectedPiece[1] = pieceNames[pieceNameKey];
+        }
     }
 }
 
@@ -116,62 +112,27 @@ const pieceSelector = (event) => {
 
 let legals = []; //array for the legal moves
 
+const fileTable = {
+    a: 1,
+    b: 2,
+    c: 3,
+    d: 4,
+    e: 5,
+    f: 6,
+    g: 7,
+    h: 8
+}
+
 const idToNumber = (id) => {
-    if (id[0] == "a") {
-        return parseInt("1" + id[1]);
-    }
-    else if (id[0] == "b") {
-        return parseInt("2" + id[1]);
-    }
-    else if (id[0] == "c") {
-        return parseInt("3" + id[1]);
-    }
-    else if (id[0] == "d") {
-        return parseInt("4" + id[1]);
-    }
-    else if (id[0] == "e") {
-        return parseInt("5" + id[1]);
-    }
-    else if (id[0] == "f") {
-        return parseInt("6" + id[1]);
-    }
-    else if (id[0] == "g") {
-        return parseInt("7" + id[1]);
-    }
-    else if (id[0] == "h") {
-        return parseInt("8" + id[1]);
-    }
+    return (parseInt(fileTable[id[0]] + id[1]));
 }
 
 const numberToId = (numId) => {
     numId = numId.toString();
     if (parseInt(numId[0]) > 8 || parseInt(numId[1]) > 8 || parseInt(numId[0]) < 1 || parseInt(numId[1]) < 1 || numId[1] == undefined) {
         return null;
-    }
-    else if (numId[0] == "1") {
-        return "a" + numId[1];
-    }
-    else if (numId[0] == "2") {
-        return "b" + numId[1];
-    }
-    else if (numId[0] == "3") {
-        return "c" + numId[1];
-    }
-    else if (numId[0] == "4") {
-        return "d" + numId[1];
-    }
-    else if (numId[0] == "5") {
-        return "e" + numId[1];
-    }
-    else if (numId[0] == "6") {
-        return "f" + numId[1];
-    }
-    else if (numId[0] == "7") {
-        return "g" + numId[1];
-    }
-    else if (numId[0] == "8") {
-        return "h" + numId[1];
-    }
+    } 
+    return Object.keys(fileTable)[numId[0] - 1] + numId[1];     
 }
 
 const checkIfOccupied = (id) => {
@@ -189,37 +150,43 @@ const checkIfOccupied = (id) => {
     }
 }
 
-const calcLegalsPawns = (selected) => {
-    let friendOrFoe = []; // e.g. ["white" , "black" , "movement direction", "starting row" , "capture right", "capture left"] first is same color as the selected piece
-    if (selected[0] == "white") {
-        friendOrFoe = ["white" , "black" , 1 , 2 , 11 , -9 ];
-    } else if (selected[0] == "black") {
-        friendOrFoe = ["black" , "white", -1 , 7 , 9 , -11 ];
+const pawnCaptures = (selected , inputs ) => {
+    let captureNums = [ inputs[4] , inputs[5] ];
+    for (let i = 0 ; i < captureNums.length ; i++ ) {
+        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + captureNums[i]))) == inputs[1]) {
+            legals.push(numberToId((idToNumber(selected[2]) + captureNums[i])));
+        }
     }
-    if (selected[2][1] == friendOrFoe[3] ) {
-        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + friendOrFoe[2] ))) == "not occupied") { //one step from starting the row
-            legals.push(numberToId((idToNumber(selected[2]) + friendOrFoe[2] )));
-            if (checkIfOccupied(numberToId((idToNumber(selected[2]) + 2 * friendOrFoe[2] ))) == "not occupied") { //two steps from starting the row
-                legals.push(numberToId((idToNumber(selected[2]) + 2 * friendOrFoe[2] )));
-            }
-        }
-        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + friendOrFoe[4]))) == friendOrFoe[1]) { //capturing from the first row
-            legals.push(numberToId((idToNumber(selected[2]) + friendOrFoe[4])));
-        }
-        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + friendOrFoe[5] ))) == friendOrFoe[1]) {
-            legals.push(numberToId((idToNumber(selected[2]) + friendOrFoe[5] )));
+}
+
+const pawnAdvanceOne = (selected , inputs) => {
+    if (checkIfOccupied(numberToId((idToNumber(selected[2]) + inputs[2] ))) == "not occupied") {
+        legals.push(numberToId((idToNumber(selected[2]) + inputs[2] )));
+        return true;
+    }
+}
+
+const pawnAdvanceTwo = (selected , inputs) => {
+    if (checkIfOccupied(numberToId((idToNumber(selected[2]) + 2 * inputs[2] ))) == "not occupied") { 
+        legals.push(numberToId((idToNumber(selected[2]) + 2 * inputs[2] )));
+    }
+}
+
+const calcLegalsPawns = (selected) => {
+    let pawnInputs = []; // values: ["own color" , "opposing" , "movement direction", "starting row" , "capture right", "capture left"] first is same color as the selected piece
+    if (selected[0] == "white") {
+        pawnInputs = ["white" , "black" , 1 , 2 , 11 , -9 ];
+    } else if (selected[0] == "black") {
+        pawnInputs = ["black" , "white", -1 , 7 , 9 , -11 ];
+    }
+    if (selected[2][1] == pawnInputs[3] ) {
+        if (pawnAdvanceOne(selected, pawnInputs)) {
+            pawnAdvanceTwo(selected, pawnInputs);
         }
     } else {
-        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + friendOrFoe[2]))) == "not occupied") { //advancing 1 step if it's not occupied
-            legals.push(numberToId((idToNumber(selected[2]) + friendOrFoe[2])));
-        }
-        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + friendOrFoe[4]))) == friendOrFoe[1]) { //capturing if possible
-            legals.push(numberToId((idToNumber(selected[2]) + friendOrFoe[4])));
-        }
-        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + friendOrFoe[5]))) == friendOrFoe[1]) {
-            legals.push(numberToId((idToNumber(selected[2]) + friendOrFoe[5])));
-        }
-    }    
+        pawnAdvanceOne(selected, pawnInputs);        
+    }
+    pawnCaptures(selected , pawnInputs); 
 }
 
 const calcLegalsKingOrKnight = (selected) => {
