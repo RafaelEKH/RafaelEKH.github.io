@@ -64,12 +64,20 @@ const pieceNameFinder = (theClass) => {
 }
 
 let thePiece; //store the selected piece for later use in moving it
+let nextToMove = "white";
+const toggleNext = () => {
+    if (nextToMove == "white") {
+        nextToMove = "black";
+    } else if (nextToMove == "black") {
+        nextToMove = "white";
+    }
+}
 
 const pieceSelector = (event) => {
     let theClass = event.target.className;
     //first selection
     if (!pieceIsSelected) {
-        if (theClass.search("piece") != -1) {
+        if (theClass.search(`${nextToMove}piece`) != -1) {
             if (theClass.search("whitepiece") != -1) {
                 selectedPiece = ["white"];
             } else if (theClass.search("blackpiece") != -1) {
@@ -106,9 +114,9 @@ const pieceSelector = (event) => {
     }
 }
 
-let legals = [];
+let legals = []; //array for the legal moves
 
-const pieceIdConverter = (id) => {
+const idToNumber = (id) => {
     if (id[0] == "a") {
         return parseInt("1" + id[1]);
     }
@@ -135,7 +143,7 @@ const pieceIdConverter = (id) => {
     }
 }
 
-const numIdConverter = (numId) => {
+const numberToId = (numId) => {
     numId = numId.toString();
     if (parseInt(numId[0]) > 8 || parseInt(numId[1]) > 8 || parseInt(numId[0]) < 1 || parseInt(numId[1]) < 1 || numId[1] == undefined) {
         return null;
@@ -182,379 +190,102 @@ const checkIfOccupied = (id) => {
 }
 
 const calcLegalsPawns = (selected) => {
+    let friendOrFoe = []; // e.g. ["white" , "black" , "movement direction", "starting row" , "capture right", "capture left"] first is same color as the selected piece
     if (selected[0] == "white") {
-        if (selected[2][1] == "2") {
-            if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) + 1))) == "not occupied") {
-                legals.push(numIdConverter((pieceIdConverter(selected[2]) + 1)));
-                if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) + 2))) == "not occupied") {
-                    legals.push(numIdConverter((pieceIdConverter(selected[2]) + 2)));
-                }
-            }
-            if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) + 11))) == "black") {
-                legals.push(numIdConverter((pieceIdConverter(selected[2]) + 11)));
-            }
-            if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) - 9))) == "black") {
-                legals.push(numIdConverter((pieceIdConverter(selected[2]) - 9)));
-            }
-        } else {
-            if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) + 1))) == "not occupied") {
-                legals.push(numIdConverter((pieceIdConverter(selected[2]) + 1)));
-            }
-            if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) + 11))) == "black") {
-                legals.push(numIdConverter((pieceIdConverter(selected[2]) + 11)));
-            }
-            if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) - 9))) == "black") {
-                legals.push(numIdConverter((pieceIdConverter(selected[2]) - 9)));
+        friendOrFoe = ["white" , "black" , 1 , 2 , 11 , -9 ];
+    } else if (selected[0] == "black") {
+        friendOrFoe = ["black" , "white", -1 , 7 , 9 , -11 ];
+    }
+    if (selected[2][1] == friendOrFoe[3] ) {
+        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + friendOrFoe[2] ))) == "not occupied") { //one step from starting the row
+            legals.push(numberToId((idToNumber(selected[2]) + friendOrFoe[2] )));
+            if (checkIfOccupied(numberToId((idToNumber(selected[2]) + 2 * friendOrFoe[2] ))) == "not occupied") { //two steps from starting the row
+                legals.push(numberToId((idToNumber(selected[2]) + 2 * friendOrFoe[2] )));
             }
         }
-    } else if (selected[0] == "black") {
-        if (selected[2][1] == "7") {
-            if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) - 1))) == "not occupied") {
-                legals.push(numIdConverter((pieceIdConverter(selected[2]) - 1)));
-                if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) - 2))) == "not occupied") {
-                    legals.push(numIdConverter((pieceIdConverter(selected[2]) - 2)));
-                }
-            }
-            if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) - 11))) == "white") {
-                legals.push(numIdConverter((pieceIdConverter(selected[2]) - 11)));
-            }
-            if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) + 9))) == "white") {
-                legals.push(numIdConverter((pieceIdConverter(selected[2]) + 9)));
-            }
-        } else {
-            if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) - 1))) == "not occupied") {
-                legals.push(numIdConverter((pieceIdConverter(selected[2]) - 1)));
-            }
-            if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) - 11))) == "white") {
-                legals.push(numIdConverter((pieceIdConverter(selected[2]) - 11)));
-            }
-            if (checkIfOccupied(numIdConverter((pieceIdConverter(selected[2]) + 9))) == "white") {
-                legals.push(numIdConverter((pieceIdConverter(selected[2]) + 9)));
-            }
+        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + friendOrFoe[4]))) == friendOrFoe[1]) { //capturing from the first row
+            legals.push(numberToId((idToNumber(selected[2]) + friendOrFoe[4])));
+        }
+        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + friendOrFoe[5] ))) == friendOrFoe[1]) {
+            legals.push(numberToId((idToNumber(selected[2]) + friendOrFoe[5] )));
+        }
+    } else {
+        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + friendOrFoe[2]))) == "not occupied") { //advancing 1 step if it's not occupied
+            legals.push(numberToId((idToNumber(selected[2]) + friendOrFoe[2])));
+        }
+        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + friendOrFoe[4]))) == friendOrFoe[1]) { //capturing if possible
+            legals.push(numberToId((idToNumber(selected[2]) + friendOrFoe[4])));
+        }
+        if (checkIfOccupied(numberToId((idToNumber(selected[2]) + friendOrFoe[5]))) == friendOrFoe[1]) {
+            legals.push(numberToId((idToNumber(selected[2]) + friendOrFoe[5])));
+        }
+    }    
+}
+
+const calcLegalsKingOrKnight = (selected) => {
+    let kingOrKnight = []; /* ["opposing color" , ["possible legal moves array"] ] */
+    if (selected[0] == "white" && selected[1] == 2) { 
+        kingOrKnight = ["black" , [21, 12, 19, 8, -12, -21, -19, -8]]; /*white knight*/
+    } else if (selected[0] == "black" && selected[1] == 2) { 
+        kingOrKnight = ["white" , [21, 12, 19, 8, -12, -21, -19, -8]]; /*black knight*/
+    } else if (selected[0] == "white" && selected[1] == 5) { 
+        kingOrKnight = ["black" , [10, 11, 1, -9, -10, -11, -1, 9]]; /*white king*/
+    } else if (selected[0] == "black" && selected[1] == 5) { 
+        kingOrKnight = ["white" , [10, 11, 1, -9, -10, -11, -1, 9]]; /*black king*/
+    }
+    let legalCandidates = [];
+    let length = kingOrKnight[1].length;
+    for (let i=0 ; i<length ; i++) {
+        legalCandidates.push( numberToId ( ( idToNumber( selected[2] ) + kingOrKnight[1][i]) ) );
+    }
+    let i;
+    for (i of legalCandidates) {
+        if (checkIfOccupied(i) == "not occupied") {
+            legals.push(i);
+        }
+        else if (checkIfOccupied(i) == kingOrKnight[0]) {
+            legals.push(i)
         }
     }
 }
 
-const calcLegalsKnights = (selected) => {
-    let knightNumbers = [21, 12, 19, 8, -12, -21, -19, -8];
+//collects legal tiles in any direction starting from the selected piece.
+const calcDirection = ( selected , directionNumber ) => { //directionNumber help: top = 1 , top-right = 11 , right = 10 , bottom-right = 9 , bottom = -1 , bottom-left = -11 , left = -10 , top-left = -9
+    let whileSwitch = true;
+    let candidateTile = idToNumber( selected[2] ) + directionNumber; //the first tile in the direction
+    let friendOrFoe = []; // e.g. ["white" , "black" ] first is same color as the selected piece
     if (selected[0] == "white") {
-        let legalKinghtCandidates = [];
-        let length = knightNumbers.length;
-        for (let i=0 ; i<length ; i++) {
-            legalKinghtCandidates.push( numIdConverter ( ( pieceIdConverter( selected[2] ) + knightNumbers[i]) ) );
-        }
-        let i;
-        for (i of legalKinghtCandidates) {
-            if (checkIfOccupied(i) == "not occupied") {
-                legals.push(i);
-            }
-            else if (checkIfOccupied(i) == "black") {
-                legals.push(i)
-            }
-        }
+        friendOrFoe = ["white" , "black"];
     } else if (selected[0] == "black") {
-        let legalKinghtCandidates = [];
-        let length = knightNumbers.length;
-        for (let i=0 ; i<length ; i++) {
-            legalKinghtCandidates.push( numIdConverter ( ( pieceIdConverter( selected[2] ) + knightNumbers[i]) ) );
-        }
-        let i;
-        for (i of legalKinghtCandidates) {
-            if (checkIfOccupied(i) == "not occupied") {
-                legals.push(i);
-            }
-            else if (checkIfOccupied(i) == "white") {
-                legals.push(i)
-            }
+        friendOrFoe = ["black" , "white"];
+    }
+    while ( whileSwitch ) {
+        if ( checkIfOccupied( numberToId( candidateTile ) ) == "not occupied" ) { //candidate is empty therefore its legal
+            legals.push( numberToId( candidateTile ) );
+            candidateTile += directionNumber;
+        } else if ( checkIfOccupied( numberToId( candidateTile ) ) == friendOrFoe[1] ) { //candidate is occupied by an opposing color piece so its legal but break the loop
+            legals.push( numberToId( candidateTile ) );
+            whileSwitch = false;
+        } else if ( checkIfOccupied( numberToId( candidateTile ) ) == friendOrFoe[0] ) { //candidate is occupied by same color piece so the tile is not legal and break the loop
+            whileSwitch = false;
+        } else if ( numberToId( candidateTile ) == null ) { //tile is out of the board, break the loop
+            whileSwitch = false;
         }
     }
 }
 
 const calcLegalsBishops = (selected) => {
-    if (selected[0] == "white") {
-        let topRightDiagonal = true;
-        let candidate = pieceIdConverter( selected[2] ) + 11;
-        while ( topRightDiagonal ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate+=11;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                legals.push( numIdConverter( candidate ) );
-                topRightDiagonal = false;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                topRightDiagonal = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                topRightDiagonal = false;
-            }
-        }
-        let topLeftDiagonal = true;
-        candidate = pieceIdConverter( selected[2] ) - 9;
-        while ( topLeftDiagonal ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate-=9;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                legals.push( numIdConverter( candidate ) );
-                topLeftDiagonal = false;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                topLeftDiagonal = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                topLeftDiagonal = false;
-            }
-        }
-        let bottomLeftDiagonal = true;
-        candidate = pieceIdConverter( selected[2] ) - 11;
-        while ( bottomLeftDiagonal ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate-=11;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                legals.push( numIdConverter( candidate ) );
-                bottomLeftDiagonal = false;
-            }  else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                bottomLeftDiagonal = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                bottomLeftDiagonal = false;
-            }
-        }
-        let bottomRightDiagonal = true;
-        candidate = pieceIdConverter( selected[2] ) + 9;
-        while ( bottomRightDiagonal ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate+=9;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                legals.push( numIdConverter( candidate ) );
-                bottomRightDiagonal = false;
-            }  else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                bottomRightDiagonal = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                bottomRightDiagonal = false;
-            }
-        }
-    } else if (selected[0] == "black") {
-        let topRightDiagonal = true;
-        let candidate = pieceIdConverter( selected[2] ) + 11;
-        while ( topRightDiagonal ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate+=11;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                legals.push( numIdConverter( candidate ) );
-                topRightDiagonal = false;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                topRightDiagonal = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                topRightDiagonal = false;
-            }
-        }
-        let topLeftDiagonal = true;
-        candidate = pieceIdConverter( selected[2] ) - 9;
-        while ( topLeftDiagonal ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate-=9;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                legals.push( numIdConverter( candidate ) );
-                topLeftDiagonal = false;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                topLeftDiagonal = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                topLeftDiagonal = false;
-            }
-        }
-        let bottomLeftDiagonal = true;
-        candidate = pieceIdConverter( selected[2] ) - 11;
-        while ( bottomLeftDiagonal ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate-=11;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                legals.push( numIdConverter( candidate ) );
-                bottomLeftDiagonal = false;
-            }  else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                bottomLeftDiagonal = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                bottomLeftDiagonal = false;
-            }
-        }
-        let bottomRightDiagonal = true;
-        candidate = pieceIdConverter( selected[2] ) + 9;
-        while ( bottomRightDiagonal ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate+=9;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                legals.push( numIdConverter( candidate ) );
-                bottomRightDiagonal = false;
-            }  else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                bottomRightDiagonal = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                bottomRightDiagonal = false;
-            }
-        }
-    }
+    calcDirection(selected, 11);
+    calcDirection(selected, -11);
+    calcDirection(selected, 9);
+    calcDirection(selected, -9);
 }
 
 const calcLegalsRooks = (selected) => {
-    if (selected[0] == "white") {
-        let right = true;
-        let candidate = pieceIdConverter( selected[2] ) + 10;
-        while ( right ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate+=10;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                legals.push( numIdConverter( candidate ) );
-                right = false;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                right = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                right = false;
-            }
-        }
-        let left = true;
-        candidate = pieceIdConverter( selected[2] ) - 10;
-        while ( left ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate-=10;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                legals.push( numIdConverter( candidate ) );
-                left = false;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                left = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                left = false;
-            }
-        }
-        let up = true;
-        candidate = pieceIdConverter( selected[2] ) + 1;
-        while ( up ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate+=1;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                legals.push( numIdConverter( candidate ) );
-                up = false;
-            }  else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                up = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                up = false;
-            }
-        }
-        let down = true;
-        candidate = pieceIdConverter( selected[2] ) - 1;
-        while ( down ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate -= 1;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                legals.push( numIdConverter( candidate ) );
-                down = false;
-            }  else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                down = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                down = false;
-            }
-        }
-    } else if (selected[0] == "black") {
-        let right = true;
-        let candidate = pieceIdConverter( selected[2] ) + 10;
-        while ( right ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate+=10;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                legals.push( numIdConverter( candidate ) );
-                right = false;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                right = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                right = false;
-            }
-        }
-        let left = true;
-        candidate = pieceIdConverter( selected[2] ) - 10;
-        while ( left ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate-=10;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                legals.push( numIdConverter( candidate ) );
-                left = false;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                left = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                left = false;
-            }
-        }
-        let up = true;
-        candidate = pieceIdConverter( selected[2] ) + 1;
-        while ( up ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate += 1;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                legals.push( numIdConverter( candidate ) );
-                up = false;
-            }  else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                up = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                up = false;
-            }
-        }
-        let down = true;
-        candidate = pieceIdConverter( selected[2] ) - 1;
-        while ( down ) {
-            if ( checkIfOccupied( numIdConverter( candidate ) ) == "not occupied" ) {
-                legals.push( numIdConverter( candidate ) );
-                candidate -= 1;
-            } else if ( checkIfOccupied( numIdConverter( candidate ) ) == "white" ) {
-                legals.push( numIdConverter( candidate ) );
-                down = false;
-            }  else if ( checkIfOccupied( numIdConverter( candidate ) ) == "black" ) {
-                down = false;
-            } else if ( numIdConverter( candidate ) == null ) {
-                down = false;
-            }
-        }
-    }
-}
-
-const calcLegalsKings = (selected) => {
-    let kingNumbers = [10, 11, 1, -9, -10, -11, -1, 9];
-    if (selected[0] == "white") {
-        let legalKingCandidates = [];
-        let length = kingNumbers.length;
-        for (let i=0 ; i<length ; i++) {
-            legalKingCandidates.push( numIdConverter ( ( pieceIdConverter( selected[2] ) + kingNumbers[i]) ) );
-        }
-        let i;
-        for (i of legalKingCandidates) {
-            if (checkIfOccupied(i) == "not occupied") {
-                legals.push(i);
-            }
-            else if (checkIfOccupied(i) == "black") {
-                legals.push(i)
-            }
-        }
-    } else if (selected[0] == "black") {
-        let legalKingCandidates = [];
-        let length = kingNumbers.length;
-        for (let i=0 ; i<length ; i++) {
-            legalKingCandidates.push( numIdConverter ( ( pieceIdConverter( selected[2] ) + kingNumbers[i]) ) );
-        }
-        let i;
-        for (i of legalKingCandidates) {
-            if (checkIfOccupied(i) == "not occupied") {
-                legals.push(i);
-            }
-            else if (checkIfOccupied(i) == "white") {
-                legals.push(i)
-            }
-        }
-    }
+    calcDirection(selected, 10);
+    calcDirection(selected, -10);
+    calcDirection(selected, 1);
+    calcDirection(selected, -1);
 }
 
 const calcLegalsQueens = (selected) => {
@@ -564,25 +295,20 @@ const calcLegalsQueens = (selected) => {
 }
 
 const calcLegals = (selected) => {
-    if (selected[1] == 0) {
-        calcLegalsPawns(selected);
+    switch(selected[1]) {
+        case 0: calcLegalsPawns(selected);
+        break;
+        case 1: calcLegalsRooks(selected);
+        break;
+        case 2: calcLegalsKingOrKnight(selected);
+        break;
+        case 3: calcLegalsBishops(selected);
+        break;
+        case 4: calcLegalsQueens(selected);
+        break;
+        case 5: calcLegalsKingOrKnight(selected);
+        break;
     }
-    else if (selected[1] == 1) {
-        calcLegalsRooks(selected);
-    }
-    else if (selected[1] == 2) {
-        calcLegalsKnights(selected);
-    }
-    else if (selected[1] == 3) {
-        calcLegalsBishops(selected);
-    }
-    else if (selected[1] == 4) {
-        calcLegalsQueens(selected);
-    }
-    else if (selected[1] == 5) {
-        calcLegalsKings(selected);
-    }
-
 }
 
 const movePiece = (event) => {
@@ -593,11 +319,16 @@ const movePiece = (event) => {
                 document.querySelector(`#${event.target.id}`).removeChild(document.querySelector(`#${event.target.id}`).firstChild);
                 pieceIsSelected = false;
                 legals = [];
+                document.querySelector(`#${event.target.id}`).appendChild(thePiece); //relocate piece
+                document.querySelector(".highlight").remove();
+                toggleNext();
+                return;
             }
             document.querySelector(`#${event.target.id}`).appendChild(thePiece); //relocate piece
             document.querySelector(".highlight").remove();
             pieceIsSelected = false;
             legals = [];
+            toggleNext();
             //target is a legal occupied tile.
         } else if (legals.indexOf(event.target.parentElement.id) != -1) {
             document.querySelector(`#${event.target.parentElement.id}`).appendChild(thePiece); //relocate piece
@@ -605,9 +336,9 @@ const movePiece = (event) => {
             document.querySelector(".highlight").remove();
             pieceIsSelected = false;
             legals = [];
-                      
+            toggleNext();                      
         }
-    } else if (event.target.className.search(selectedPiece[0]) == -1) { //target is not a same color piece but anything else
+    } else if (event.target.className.search(selectedPiece[0]) == -1) { //target not legal nor is not a same color piece, but anything else
         pieceIsSelected = false;
         document.querySelector(".highlight").remove();
         document.querySelector(`#${selectedPiece[2]}`).appendChild(thePiece);
@@ -636,7 +367,7 @@ function restart() {
 window.addEventListener("click", e => {
     if (pieceIsSelected) {
         movePiece(e);
-    } else /*if (!pieceIsSelected)*/ {
+    } else {
         pieceSelector(e);
     }
 });
@@ -644,7 +375,7 @@ window.addEventListener("click", e => {
 window.addEventListener("touchstart", e => {
     if (pieceIsSelected) {
         movePiece(e);
-    } else /*if (!pieceIsSelected)*/ {
+    } else {
         pieceSelector(e);
     }
 });
