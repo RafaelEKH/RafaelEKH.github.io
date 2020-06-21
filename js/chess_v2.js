@@ -41,20 +41,13 @@ function testpiece() {
 let pieceIsSelected = false;
 let selectedPiece = []; //selectedPiece format ["color", piecetype number , "placed tile id"] e.g. ["white", 0 , "e4"]
 
-const pieceNames = {
-    pawn: 0,
-    rook: 1,
-    knight: 2,
-    bishop: 3,
-    queen: 4,
-    king: 5 
-}
-
 const pieceNameFinder = (theClass) => {
-    let pieceNameKey;
-    for (pieceNameKey of Object.keys(pieceNames)) {
-        if ( theClass.search(pieceNameKey) != -1 ) {
-            selectedPiece[1] = pieceNames[pieceNameKey];
+    let names = ["pawn","rook","knight","bishop","queen","king"];
+    let i;
+    for (i in names) {
+        if (theClass.search(names[i]) != -1 ) {
+            selectedPiece[1] = parseInt(i);
+            return;
         }
     }
 }
