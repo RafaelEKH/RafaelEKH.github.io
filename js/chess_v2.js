@@ -1,4 +1,3 @@
-
 const createPiece = (targetArray, fa_piecename, piececolor) => {
     let length = targetArray.length //for better performance 
     for (let i = 0; i < length; i++) {
@@ -29,6 +28,24 @@ const setThePieces = () => {
         //deactivate button
         document.getElementById("piecesetter").innerHTML = "The pieces are set!"
         piecesAreSet = true;
+        setPieceHeight();        
+    }
+}
+
+const setPieceHeight = () => {
+    let tileHeight = document.querySelector(".mezo").offsetHeight; 
+    let pieceHeight = parseInt(0.8*tileHeight); 
+    let pieces = document.querySelectorAll("i.fas");
+    let length = pieces.length;
+    for (let i = 0; i<length ; i++ ) {
+        pieces[i].style.fontSize = `${pieceHeight}px`;
+        let topOffset = parseInt((tileHeight-pieceHeight)/2);
+        pieces[i].style.top = `${topOffset}px`;
+    }
+    for (let i = 0; i<length; i++) {
+        let pieceWidth = pieces[i].offsetWidth;
+        let leftOffset = parseInt((tileHeight-pieceWidth)/2);
+        pieces[i].style.left = `${leftOffset}px`;
     }
 }
 
@@ -339,3 +356,5 @@ window.addEventListener("touchstart", e => {
         pieceSelector(e);
     }
 });
+
+window.addEventListener('resize', setPieceHeight);

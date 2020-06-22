@@ -34,8 +34,10 @@ border-radius: 10px;
 }
 
 #homebody {
+    position: relative;
     display: block;
-    width: 1280px;
+    width:100% ;
+    max-width: 1280px;
     min-height: 100%;
     margin: auto;
     background-color: rgb(176, 172, 202);
