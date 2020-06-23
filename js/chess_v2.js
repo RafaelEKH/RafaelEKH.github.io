@@ -3,56 +3,81 @@ const createPiece = (targetArray, fa_piecename, piececolor) => {
     for (let i = 0; i < length; i++) {
         let piece = document.createElement("i");
         piece.className = `${fa_piecename} ${piececolor} piece`;
+        piece.style.visibility = "hidden";
         document.querySelector(`#${targetArray[i]}`).appendChild(piece);
     }
 }
 
 let piecesAreSet = false;
 
-const setThePieces = () => {
+const revealPieces = () => {
     if (!piecesAreSet) {
-        //white pieces
-        createPiece(["a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2"], "fas fa-chess-pawn", "whitepiece");
-        createPiece(["a1", "h1"], "fas fa-chess-rook", "whitepiece");
-        createPiece(["b1", "g1"], "fas fa-chess-knight", "whitepiece");
-        createPiece(["c1", "f1"], "fas fa-chess-bishop", "whitepiece");
-        createPiece(["d1"], "fas fa-chess-queen", "whitepiece");
-        createPiece(["e1"], "fas fa-chess-king", "whitepiece");
-        //black pieces
-        createPiece(["a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7"], "fas fa-chess-pawn", "blackpiece");
-        createPiece(["a8", "h8"], "fas fa-chess-rook", "blackpiece");
-        createPiece(["b8", "g8"], "fas fa-chess-knight", "blackpiece");
-        createPiece(["c8", "f8"], "fas fa-chess-bishop", "blackpiece");
-        createPiece(["d8"], "fas fa-chess-queen", "blackpiece");
-        createPiece(["e8"], "fas fa-chess-king", "blackpiece");
-        //deactivate button
-        document.getElementById("piecesetter").innerHTML = "The pieces are set!"
+        pieces = document.querySelectorAll("i.fas");
+        length = pieces.length;
+        for (i=0 ; i<length ; i++) {
+            pieces[i].style.visibility = "visible";
+        }
+        positionPieces();
         piecesAreSet = true;
-        setPieceHeight();        
+        document.getElementById("piecesetter").innerHTML = "Restart";
+    } else {
+        restart();
     }
 }
 
+const setThePieces = () => {
+    let damas8 = [
+        ["2", "1", "white"],
+        ["7", "8", "black"]
+    ];
+    for (i=0; i<2; i++) {
+        createPiece([`a${damas8[i][0]}`, `b${damas8[i][0]}`, `c${damas8[i][0]}`, `d${damas8[i][0]}`, `e${damas8[i][0]}`, `f${damas8[i][0]}`, `g${damas8[i][0]}`, `h${damas8[i][0]}`], `fas fa-chess-pawn`, `${damas8[i][2]}piece`);
+        createPiece([`a${damas8[i][1]}`, `h${damas8[i][1]}`], `fas fa-chess-rook`, `${damas8[i][2]}piece`);
+        createPiece([`b${damas8[i][1]}`, `g${damas8[i][1]}`], `fas fa-chess-knight`, `${damas8[i][2]}piece`);
+        createPiece([`c${damas8[i][1]}`, `f${damas8[i][1]}`], `fas fa-chess-bishop`, `${damas8[i][2]}piece`);
+        createPiece([`d${damas8[i][1]}`], `fas fa-chess-queen`, `${damas8[i][2]}piece`);
+        createPiece([`e${damas8[i][1]}`], `fas fa-chess-king`, `${damas8[i][2]}piece`);
+    }
+}
+
+setThePieces();
+
+let tileHeight = document.querySelector(".mezo").offsetHeight;
+let pieces = document.querySelectorAll("i.fas");
+
 const setPieceHeight = () => {
-    let tileHeight = document.querySelector(".mezo").offsetHeight; 
-    let pieceHeight = parseInt(0.8*tileHeight); 
-    let pieces = document.querySelectorAll("i.fas");
+    tileHeight = document.querySelector(".mezo").offsetHeight; 
+    let pieceHeight = 0.8*tileHeight; 
+    pieces = document.querySelectorAll("i.fas");
     let length = pieces.length;
     for (let i = 0; i<length ; i++ ) {
         pieces[i].style.fontSize = `${pieceHeight}px`;
-        let topOffset = parseInt((tileHeight-pieceHeight)/2);
-        pieces[i].style.top = `${topOffset}px`;
     }
+}
+
+const setLeftOffset = () => {
+    let length = pieces.length;
     for (let i = 0; i<length; i++) {
         let pieceWidth = pieces[i].offsetWidth;
-        let leftOffset = parseInt((tileHeight-pieceWidth)/2);
+        let leftOffset = (tileHeight-pieceWidth)/2;
         pieces[i].style.left = `${leftOffset}px`;
     }
 }
 
-function testpiece() {
-    createPiece(["d4", "h8"], "fas fa-chess-queen", "whitepiece");
-    createPiece(["f2"], "fas fa-chess-queen", "blackpiece");
-    createPiece(["c5"], "fas fa-chess-queen", "whitepiece");
+const setTopOffset = () => {
+    let length = pieces.length;
+    for (let i = 0; i<length; i++) {
+        tileHeight = document.querySelector(".mezo").offsetHeight; 
+        let pieceHeight = pieces[i].offsetHeight;
+        let topOffset = (tileHeight-pieceHeight)/2;
+        pieces[i].style.top = `${topOffset}px`;
+    }
+}
+
+const positionPieces = () => {
+    setPieceHeight();       
+    setTopOffset();
+    setLeftOffset(); 
 }
 
 let pieceIsSelected = false;
@@ -70,13 +95,10 @@ const pieceNameFinder = (theClass) => {
 }
 
 let thePiece; //store the selected piece for later use in moving it
+
 let nextToMove = "white";
 const toggleNext = () => {
-    if (nextToMove == "white") {
-        nextToMove = "black";
-    } else if (nextToMove == "black") {
-        nextToMove = "white";
-    }
+    nextToMove == "white" ? nextToMove = "black" : nextToMove = "white";
 }
 
 const pieceSelector = (event) => {
@@ -267,8 +289,14 @@ const calcLegalsRooks = (selected) => {
 
 const calcLegalsQueens = (selected) => {
     calcLegalsRooks(selected);
-    calcLegalsBishops(selected);
-    
+    calcLegalsBishops(selected);    
+}
+
+
+const calcCastling = (selected) => {
+    if (selected[0] == "white" && selected[1] == 5) {
+     //placeholder   
+    }
 }
 
 const calcLegals = (selected) => {
@@ -340,21 +368,21 @@ function restart() {
     alert("restart function placeholder");
 }
 
+/*let btn = document.querySelector("#btn-div");
+btn.addEventListener("click", setThePieces);*/
 
 window.addEventListener("click", e => {
-    if (pieceIsSelected) {
-        movePiece(e);
-    } else {
-        pieceSelector(e);
-    }
+    pieceIsSelected ? movePiece(e) : pieceSelector(e);
 });
 
 window.addEventListener("touchstart", e => {
-    if (pieceIsSelected) {
-        movePiece(e);
-    } else {
-        pieceSelector(e);
-    }
+    pieceIsSelected ? movePiece(e) : pieceSelector(e);    
 });
 
-window.addEventListener('resize', setPieceHeight);
+window.addEventListener('resize', () => {
+    let newHeight = document.querySelector(".mezo").offsetHeight;
+    if (piecesAreSet && newHeight != tileHeight) {
+        positionPieces();
+        newHeight = tileHeight;
+    }
+});
